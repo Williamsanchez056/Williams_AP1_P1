@@ -1,0 +1,108 @@
+﻿@page "/modelo1"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Williams_AP1_P1.Models
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Listado de Personas</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border">
+
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 text-dark">Listado de Personas</h5>
+
+            <a class="btn btn-primary" href="/modelo1/create">
+                Crear Registro
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Filtrar por</label>
+                    <select class="form-select" @bind="filtro">
+                        <option value="">Elija una opción</option>
+                        <option value="Id">Id</option>
+                        <option value="Nombre">Nombre</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Búsqueda</label>
+                    <div class="input-group">
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Buscar..."
+                               @bind="criterioBusqueda" />
+
+                        <button class="btn btn-outline-primary" @onclick="Buscar">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QuickGrid -->
+            <div class="table-responsive">
+                <QuickGrid Items="PersonasFiltradas" Pagination="paginationState" class="table table-bordered table-hover align-middle">
+                    <PropertyColumn Property="p => p.IdPersona" Title="Id" Sortable="true" />
+                    <PropertyColumn Property="p => p.Nombre" Title="Nombre" Sortable="true" />
+                    <PropertyColumn Property="p => p.Apellido" Title="Apellido" Sortable="true" />
+                    <PropertyColumn Property="p => p.Edad" Title="Edad" Sortable="true" />
+                    <PropertyColumn Property="p => p.Telefono" Title="Teléfono" />
+
+                    <TemplateColumn Title="Acciones">
+                        <a class="btn btn-warning btn-sm me-1" href="/modelo1/edit/@context.IdPersona">
+                            Editar
+                        </a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(context.IdPersona)">
+                            Eliminar
+                        </button>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <p class="text-muted m-0">
+                    Total registros: <strong>@listaOriginal.Count</strong>
+                </p>
+                <Paginator State="paginationState" />
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Modelo1> listaOriginal = new();
+    private PaginationState paginationState = new() { ItemsPerPage = 5 };
+
+    private string filtro = "";
+    private string criterioBusqueda = "";
+
+    private IQueryable<Modelo1> PersonasFiltradas
+    {
+        get
+        {
+            // Retorna la consulta filtrada para QuickGrid
+            return listaOriginal.AsQueryable();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar registros de la base de datos o servicio aquí
+    }
+
+    private void Buscar()
+    {
+        // Lógica de búsqueda aquí
+    }
+
+    private async Task Eliminar(int idPersona)
+    {
+        // Lógica para eliminar registro aquí
+    }
+}

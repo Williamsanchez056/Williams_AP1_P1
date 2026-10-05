@@ -1,0 +1,59 @@
+﻿@page "/modelo1/edit/{Id:int}"
+@using Williams_AP1_P1.Models
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Editar Registro</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border col-md-8 mx-auto">
+        <div class="card-header bg-white py-3">
+            <h5 class="m-0 text-dark">Editar Registro</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Id</label>
+                <input class="form-control" value="@persona.IdPersona" disabled />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" @bind="persona.Nombre" placeholder="Nombre" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Apellido</label>
+                <input class="form-control" @bind="persona.Apellido" placeholder="Apellido" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Edad</label>
+                <input type="number" class="form-control" @bind="persona.Edad" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Teléfono</label>
+                <input class="form-control" @bind="persona.Telefono" placeholder="Teléfono" />
+            </div>
+        </div>
+
+        <div class="card-footer bg-white d-flex justify-content-end gap-2">
+            <a href="/modelo1" class="btn btn-secondary">Volver</a>
+            <button class="btn btn-primary" @onclick="Guardar">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Modelo1 persona = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task Guardar()
+    {
+
+    }
+}
