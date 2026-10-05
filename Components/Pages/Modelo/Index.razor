@@ -1,108 +1,231 @@
-﻿@page "/modelo1"
+﻿@page "/autores"
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Williams_AP1_P1.Context
 @using Williams_AP1_P1.Models
-@inject NavigationManager Navigation
+
+@inject Williams_AP1_P1.Services.AutorService autorService
+
 @rendermode InteractiveServer
 
-<PageTitle>Listado de Personas</PageTitle>
+<PageTitle>Autores</PageTitle>
 
 <div class="container mt-4">
-    <div class="card shadow-sm border">
+    <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Lista de Autores</h3>
+            <button class="btn btn-primary" @onclick="() => AbrirModalNuevo()">Nuevo</button>
 
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="m-0 text-dark">Listado de Personas</h5>
-
-            <a class="btn btn-primary" href="/modelo1/create">
-                Crear Registro
-            </a>
         </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <select class="form-select" @bind="filtro">
 
-        <div class="card-body">
+                    <option value="">-- Filtrar por --</option>
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small">Filtrar por</label>
-                    <select class="form-select" @bind="filtro">
-                        <option value="">Elija una opción</option>
-                        <option value="Id">Id</option>
-                        <option value="Nombre">Nombre</option>
-                    </select>
+                    <option value="Nombres">
+                        Nombres
+                    </option>
+                    <option value="Nacionalidad">
+                        Nacionalidad
+                    </option>
+
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Escribe para buscar tu autor preferido"
+                           @bind="textoBusqueda" />
+
+                    <button class="btn btn-primary"
+                            @onclick="Buscar">
+
+                        Buscar
+                    </button>
                 </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small">Búsqueda</label>
-                    <div class="input-group">
-                        <input type="text"
-                               class="form-control"
-                               placeholder="Buscar..."
-                               @bind="criterioBusqueda" />
-
-                        <button class="btn btn-outline-primary" @onclick="Buscar">
-                            Buscar
-                        </button>
-                    </div>
-                </div>
             </div>
+        </div>
+        <QuickGrid Items="listaMostrar.AsQueryable()"
+                   class="table table-bordered">
 
-            <!-- QuickGrid -->
-            <div class="table-responsive">
-                <QuickGrid Items="PersonasFiltradas" Pagination="paginationState" class="table table-bordered table-hover align-middle">
-                    <PropertyColumn Property="p => p.IdAutor" Title="Id" Sortable="true" />
-                    <PropertyColumn Property="p => p.Nombre" Title="Nombre" Sortable="true" />
-                    <PropertyColumn Property="p => p.Nacionalidad" Title="Nacionalidad" Sortable="true" />
-                    <PropertyColumn Property="p => p.FechaNacimiento" Title="Fecha de Nacimiento" Sortable="true" />
-                    <PropertyColumn Property="p => p.Sueldo" Title="Sueldo" Sortable="true" />
+            <PropertyColumn Property="a => a.IdAutor"
+                            Title="Id" />
 
-                    <TemplateColumn Title="Acciones">
-                        <a class="btn btn-warning btn-sm me-1" href="/modelo1/edit/@context.IdAutor">
-                            Editar
-                        </a>
-                        <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(context.IdAutor)">
-                            Eliminar
-                        </button>
-                    </TemplateColumn>
-                </QuickGrid>
-            </div>
+            <PropertyColumn Property="a => a.Nombre"
+                            Title="Nombres" />
 
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <p class="text-muted m-0">
-                    Total registros: <strong>@listaOriginal.Count</strong>
-                </p>
-                <Paginator State="paginationState" />
-            </div>
+            <PropertyColumn Property="a => a.Nacionalidad"
+                            Title="Nacionalidad" />
 
+            <PropertyColumn Property="a => a.FechaNacimiento"
+                            Title="Fecha Nacimiento" />
+
+            <PropertyColumn Property="a => a.Sueldo"
+                            Title="Sueldo" />
+
+            <TemplateColumn Title="Acciones">
+
+                <button class="btn btn-sm btn-warning me-1" @onclick="() => AbrirModalEditar(context.IdAutor)">Editar</button>
+
+                <button class="btn btn-sm btn-danger"
+                        @onclick="() => Eliminar(context.IdAutor)">
+
+                    Eliminar
+
+                </button>
+
+            </TemplateColumn>
+
+        </QuickGrid>
+
+        <div class="mt-3">
+
+            <p class="text-muted">
+                Total de autores: @listaMostrar.Count
+            </p>
+            <p class="text-muted">
+                Total de sueldos:
+                @listaMostrar.Sum(x => x.Sueldo).ToString("C2")
+            </p>
         </div>
     </div>
 </div>
 
+
+@* Modal para crear/editar *@
+@if (mostrarModal)
+{
+    <div class="modal d-block" tabindex="-1" style="display:block; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modelo?.IdAutor == 0 ? "Nuevo Autor" : "Editar Autor")</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="modelo" OnValidSubmit="GuardarModelo">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <InputText class="form-control" @bind-Value="modelo.Nombre" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nacionalidad</label>
+                            <InputText class="form-control" @bind-Value="modelo.Nacionalidad" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Nacimiento</label>
+                            <InputDate class="form-control" @bind-Value="modelo.FechaNacimiento" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Sueldo</label>
+                            <InputNumber class="form-control" @bind-Value="modelo.Sueldo" />
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private List<Autor> listaOriginal = new();
-    private PaginationState paginationState = new() { ItemsPerPage = 5 };
+
+    private List<Autor> listaCompleta = new();
+
+    private List<Autor> listaMostrar = new();
 
     private string filtro = "";
-    private string criterioBusqueda = "";
 
-    private IQueryable<Autor> PersonasFiltradas
-    {
-        get
-        {
-            // Retorna la consulta filtrada para QuickGrid
-            return listaOriginal.AsQueryable();
-        }
-    }
+    private string textoBusqueda = "";
+
 
     protected override async Task OnInitializedAsync()
     {
-        // Cargar registros de la base de datos o servicio aquí
+        await Actualizar();
+    }
+    private async Task Actualizar()
+    {
+        listaCompleta = await autorService.Listar(a => true);
+        listaMostrar = listaCompleta;
     }
 
     private void Buscar()
     {
-        // Lógica de búsqueda aquí
+
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            listaMostrar = listaCompleta;
+        }
+
+        else if (filtro == "Nombres")
+        {
+            listaMostrar = listaCompleta
+                .Where(x => x.Nombre
+                .ToLower()
+                .Contains(textoBusqueda.ToLower()))
+                .ToList();
+        }
+
+        else if (filtro == "Nacionalidad")
+        {
+            listaMostrar = listaCompleta
+                .Where(x => x.Nacionalidad
+                .ToLower()
+                .Contains(textoBusqueda.ToLower()))
+                .ToList();
+        }
+
     }
 
-    private async Task Eliminar(int idPersona)
+    private async Task Eliminar(int id)
     {
-        // Lógica para eliminar registro aquí
+        var eliminado = await autorService.Eliminar(id);
+        if (eliminado)
+            await Actualizar();
     }
+
+    private bool mostrarModal = false;
+    private Autor modelo = new Autor();
+
+    private void AbrirModalNuevo()
+    {
+        modelo = new Autor();
+        mostrarModal = true;
+    }
+
+    private async Task AbrirModalEditar(int id)
+    {
+        var encontrado = await autorService.Buscar(id);
+        if (encontrado != null)
+        {
+            modelo = encontrado;
+            mostrarModal = true;
+        }
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+    }
+
+    private async Task GuardarModelo()
+    {
+        if (modelo == null) return;
+        await autorService.Guardar(modelo);
+        mostrarModal = false;
+        await Actualizar();
+    }
+
 }
