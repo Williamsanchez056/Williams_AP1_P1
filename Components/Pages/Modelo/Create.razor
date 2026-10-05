@@ -13,20 +13,24 @@
 
         <div class="card-body">
             <div class="mb-3">
+                <label class="form-label">Autor</label>
+                <input class="form-control" @bind="persona.Nombre" placeholder="Nombre" />
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Nombre</label>
                 <input class="form-control" @bind="persona.Nombre" placeholder="Nombre" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Apellido</label>
-                <input class="form-control" @bind="persona.Apellido" placeholder="Apellido" />
+                <label class="form-label">Nacionalidad</label>
+                <input class="form-control" @bind="persona.Nacionalidad" placeholder="Nacionalidad" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Edad</label>
-                <input type="number" class="form-control" @bind="persona.Edad" />
+                <label class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control" @bind="persona.FechaNacimiento" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Teléfono</label>
-                <input class="form-control" @bind="persona.Telefono" placeholder="Teléfono" />
+                <label class="form-label">Sueldo</label>
+                <input type="number" class="form-control" @bind="persona.Sueldo" placeholder="Sueldo" />
             </div>
         </div>
 
@@ -38,7 +42,7 @@
 </div>
 
 @code {
-    private Modelo1 persona = new();
+    private Autor persona = new();
 
     private async Task Guardar()
     {

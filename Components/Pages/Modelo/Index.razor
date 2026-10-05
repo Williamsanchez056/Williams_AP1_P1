@@ -47,17 +47,17 @@
             <!-- QuickGrid -->
             <div class="table-responsive">
                 <QuickGrid Items="PersonasFiltradas" Pagination="paginationState" class="table table-bordered table-hover align-middle">
-                    <PropertyColumn Property="p => p.IdPersona" Title="Id" Sortable="true" />
+                    <PropertyColumn Property="p => p.IdAutor" Title="Id" Sortable="true" />
                     <PropertyColumn Property="p => p.Nombre" Title="Nombre" Sortable="true" />
-                    <PropertyColumn Property="p => p.Apellido" Title="Apellido" Sortable="true" />
-                    <PropertyColumn Property="p => p.Edad" Title="Edad" Sortable="true" />
-                    <PropertyColumn Property="p => p.Telefono" Title="Teléfono" />
+                    <PropertyColumn Property="p => p.Nacionalidad" Title="Nacionalidad" Sortable="true" />
+                    <PropertyColumn Property="p => p.FechaNacimiento" Title="Fecha de Nacimiento" Sortable="true" />
+                    <PropertyColumn Property="p => p.Sueldo" Title="Sueldo" Sortable="true" />
 
                     <TemplateColumn Title="Acciones">
-                        <a class="btn btn-warning btn-sm me-1" href="/modelo1/edit/@context.IdPersona">
+                        <a class="btn btn-warning btn-sm me-1" href="/modelo1/edit/@context.IdAutor">
                             Editar
                         </a>
-                        <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(context.IdPersona)">
+                        <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(context.IdAutor)">
                             Eliminar
                         </button>
                     </TemplateColumn>
@@ -76,13 +76,13 @@
 </div>
 
 @code {
-    private List<Modelo1> listaOriginal = new();
+    private List<Autor> listaOriginal = new();
     private PaginationState paginationState = new() { ItemsPerPage = 5 };
 
     private string filtro = "";
     private string criterioBusqueda = "";
 
-    private IQueryable<Modelo1> PersonasFiltradas
+    private IQueryable<Autor> PersonasFiltradas
     {
         get
         {

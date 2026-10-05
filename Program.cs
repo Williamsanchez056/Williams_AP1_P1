@@ -13,7 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<ModeloService>();
+builder.Services.AddScoped<AutorService>();
 builder.Services.AddBlazoredToast();
 
 builder.Services.AddRazorComponents()
