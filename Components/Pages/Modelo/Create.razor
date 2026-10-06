@@ -1,51 +1,79 @@
-﻿@page "/modelo1/create"
+﻿@page "/autores/create"
+
+@using Williams_AP1_P1.Context
 @using Williams_AP1_P1.Models
+@using Microsoft.EntityFrameworkCore
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NavigationManager Navigation
+
 @rendermode InteractiveServer
 
-<PageTitle>Crear Registro</PageTitle>
+<PageTitle>Crear Autor</PageTitle>
 
 <div class="container mt-4">
-    <div class="card shadow-sm border col-md-8 mx-auto">
-        <div class="card-header bg-white py-3">
-            <h5 class="m-0 text-dark">Crear Registro</h5>
+
+    <div class="card p-4 col-md-6 mx-auto">
+
+        <h5>Crear Autor</h5>
+        <div class="mb-3">
+
+            <label>Nombres:</label>
+            <input class="form-control"
+                   @bind="autor.Nombre" />
+
         </div>
 
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">Autor</label>
-                <input class="form-control" @bind="persona.Nombre" placeholder="Nombre" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Nombre</label>
-                <input class="form-control" @bind="persona.Nombre" placeholder="Nombre" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Nacionalidad</label>
-                <input class="form-control" @bind="persona.Nacionalidad" placeholder="Nacionalidad" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Fecha de Nacimiento</label>
-                <input type="date" class="form-control" @bind="persona.FechaNacimiento" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Sueldo</label>
-                <input type="number" class="form-control" @bind="persona.Sueldo" placeholder="Sueldo" />
-            </div>
-        </div>
+        <div class="mb-3">
 
-        <div class="card-footer bg-white d-flex justify-content-end gap-2">
-            <a href="/modelo1" class="btn btn-secondary">Volver</a>
-            <button class="btn btn-primary" @onclick="Guardar">Guardar</button>
+            <label>Nacionalidad:</label>
+            <input class="form-control"
+                   @bind="autor.Nacionalidad" />
+        </div>
+        <div class="mb-3">
+            <label>Fecha de Nacimiento:</label>
+            <input type="date"
+                   class="form-control"
+                   @bind="autor.FechaNacimiento" />
+        </div>
+        <div class="mb-3">
+
+            <label>Sueldo:</label>
+            <input type="number"
+                   class="form-control"
+                   @bind="autor.Sueldo" />
+
+        </div>
+        <div class="d-flex gap-2">
+
+            <button class="btn btn-success"
+                    @onclick="Guardar">
+
+                Guardar
+            </button>
+            <a href="/autores"
+               class="btn btn-secondary">
+
+                Volver
+
+            </a>
         </div>
     </div>
 </div>
 
 @code {
-    private Autor persona = new();
+
+    private Autor autor = new();
 
     private async Task Guardar()
     {
+        var db = await DbFactory.CreateDbContextAsync();
 
+        db.Autores.Add(autor);
+
+        await db.SaveChangesAsync();
+
+        Navigation.NavigateTo("/autores");
     }
+
 }

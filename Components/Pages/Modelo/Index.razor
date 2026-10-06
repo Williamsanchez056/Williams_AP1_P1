@@ -59,8 +59,9 @@
             <PropertyColumn Property="a => a.Nacionalidad"
                             Title="Nacionalidad" />
 
-            <PropertyColumn Property="a => a.FechaNacimiento"
-                            Title="Fecha Nacimiento" />
+            <TemplateColumn Title="Fecha Nacimiento">
+                @context.FechaNacimiento.ToString("dd/MM/yyyy")
+            </TemplateColumn>
 
             <PropertyColumn Property="a => a.Sueldo"
                             Title="Sueldo" />
