@@ -1,0 +1,12 @@
+@using Williams_AP1_P1.Context
+@using Williams_AP1_P1.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components
+
+@code {
+    [Parameter]
+    public Autor Autor { get; set; } = new();
+}
+
+<input class="form-control"
+       @bind="Autor.Nombre" />
