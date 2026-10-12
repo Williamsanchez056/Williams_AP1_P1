@@ -5,80 +5,79 @@ using Williams_AP1_P1.Models;
 
 namespace Williams_AP1_P1.Services;
 
-public class AutorService
+public class AutorService(
+    IDbContextFactory<ApplicationDbContext> contextFactory)
+    :Aplicada1.Core.IService<Autor, int>
 {
-    private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
-
-    public AutorService(IDbContextFactory<ApplicationDbContext> dbFactory)
+    public async Task<bool> Guardar(Autor autor)
     {
-        _dbFactory = dbFactory;
+        if (!await Existe(autor.IdAutor))
+        {
+            return await Insertar(autor);
+        }
+        else
+        {
+            return await Modificar(autor);
+        }
     }
 
-    public async Task<bool> Existe(int idAutor)
+    public async Task<bool> Existe(int autorId)
     {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
 
         return await contexto.Autores
-            .AnyAsync(a => a.IdAutor == idAutor);
+            .AnyAsync(a => a.IdAutor == autorId);
     }
 
-    private async Task<bool> Insertar(Autor autor)
+    public async Task<bool> Insertar(Autor autor)
     {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
 
         contexto.Autores.Add(autor);
 
         return await contexto.SaveChangesAsync() > 0;
     }
 
-    private async Task<bool> Modificar(Autor autor)
+    public async Task<bool> Modificar(Autor autor)
     {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
 
-        contexto.Autores.Update(autor);
+        contexto.Update(autor);
 
         return await contexto.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> Guardar(Autor autor)
+    public async Task<Autor?> Buscar(int autorId)
     {
-        if (!await Existe(autor.IdAutor))
-            return await Insertar(autor);
-        else
-            return await Modificar(autor);
-    }
-
-    public async Task<bool> Eliminar(int idAutor)
-    {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
-
-        var autor = await contexto.Autores.FindAsync(idAutor);
-
-        if (autor == null)
-            return false;
-
-        contexto.Autores.Remove(autor);
-
-        return await contexto.SaveChangesAsync() > 0;
-    }
-
-    public async Task<Autor?> Buscar(int idAutor)
-    {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
 
         return await contexto.Autores
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.IdAutor == idAutor);
+            .FirstOrDefaultAsync(a => a.IdAutor == autorId);
     }
 
-    public async Task<List<Autor>> Listar(
+    public async Task<List<Autor>> GetList(
         Expression<Func<Autor, bool>> criterio)
     {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
 
         return await contexto.Autores
-            .AsNoTracking()
             .Where(criterio)
+            .AsNoTracking()
             .ToListAsync();
+    }
+
+    public async Task<bool> Eliminar(int autorId)
+    {
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
+
+        return await contexto.Autores
+            .Where(a => a.IdAutor == autorId)
+            .ExecuteDeleteAsync() > 0;
     }
 }
