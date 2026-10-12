@@ -11,4 +11,13 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<Autor> Autores => Set<Autor>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Autor>()
+            .Property(a => a.Sueldo)
+            .HasPrecision(18, 2);
+    }
 }

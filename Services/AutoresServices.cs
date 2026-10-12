@@ -22,30 +22,31 @@ public class AutorService
             .AnyAsync(a => a.IdAutor == idAutor);
     }
 
-    private async Task<bool> Insertar(Autor autor)
-    {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
-
-        contexto.Autores.Add(autor);
-
-        return await contexto.SaveChangesAsync() > 0;
-    }
-
-    private async Task<bool> Modificar(Autor autor)
-    {
-        using var contexto = await _dbFactory.CreateDbContextAsync();
-
-        contexto.Autores.Update(autor);
-
-        return await contexto.SaveChangesAsync() > 0;
-    }
-
     public async Task<bool> Guardar(Autor autor)
     {
-        if (!await Existe(autor.IdAutor))
-            return await Insertar(autor);
+        using var contexto = await _dbFactory.CreateDbContextAsync();
+
+        if (autor.IdAutor == 0)
+        {
+            contexto.Autores.Add(autor);
+        }
         else
-            return await Modificar(autor);
+        {
+            var autorExistente = await contexto.Autores
+                .FindAsync(autor.IdAutor);
+
+            if (autorExistente == null)
+            {
+                return false;
+            }
+
+            autorExistente.Nombre = autor.Nombre;
+            autorExistente.Nacionalidad = autor.Nacionalidad;
+            autorExistente.FechaNacimiento = autor.FechaNacimiento;
+            autorExistente.Sueldo = autor.Sueldo;
+        }
+
+        return await contexto.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> Eliminar(int idAutor)
@@ -55,7 +56,9 @@ public class AutorService
         var autor = await contexto.Autores.FindAsync(idAutor);
 
         if (autor == null)
+        {
             return false;
+        }
 
         contexto.Autores.Remove(autor);
 
