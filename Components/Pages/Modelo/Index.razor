@@ -1,262 +1,155 @@
 ﻿@page "/autores"
-@using Microsoft.EntityFrameworkCore
+
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Microsoft.AspNetCore.Components.Forms
-@using Williams_AP1_P1.Context
 @using Williams_AP1_P1.Models
+@using Williams_AP1_P1.Services
 
-@inject Williams_AP1_P1.Services.AutorService autorService
+@inject AutorService autorService
 
-@rendermode InteractiveServer
+<PageTitle>Registro de autores</PageTitle>
 
-<PageTitle>Autores</PageTitle>
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title">Registro de autores</h5>
 
-<div class="container mt-4">
-    <div class="card p-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Lista de Autores</h3>
-
-            <button class="btn btn-primary" @onclick="AbrirModalNuevo">
-                Nuevo
-            </button>
+            <a href="/autores/create" class="btn btn-primary">
+                <i class="bi bi-plus-square"></i> Crear
+            </a>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <select class="form-select" @bind="filtro">
-                    <option value="">-- Filtrar por --</option>
-                    <option value="Nombres">Nombres</option>
-                    <option value="Nacionalidad">Nacionalidad</option>
-                </select>
-            </div>
+        <div class="card-body">
 
-            <div class="col-md-4">
-                <div class="input-group">
-                    <input type="text"
-                           class="form-control"
-                           placeholder="Escribe para buscar tu autor preferido"
-                           @bind="textoBusqueda" />
+            <div class="row">
+                <div class="col-3">
+                    <label class="col-form-label">
+                        <strong>Filtrar por</strong>
+                    </label>
+                </div>
 
-                    <button class="btn btn-primary" @onclick="Buscar">
-                        Buscar
-                    </button>
+                <div class="col-4">
+                    <label class="col-form-label">
+                        <strong>Búsqueda</strong>
+                    </label>
                 </div>
             </div>
-        </div>
 
-        <QuickGrid Items="listaMostrar.AsQueryable()"
-                   class="table table-bordered">
+            <div class="row align-items-center mb-3">
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="" disabled>Elija una opción</option>
+                        <option value="Nombre">Nombre</option>
+                        <option value="Nacionalidad">Nacionalidad</option>
+                    </InputSelect>
+                </div>
 
-            <PropertyColumn Property="a => a.IdAutor"
-                            Title="Id" />
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control"
+                               @bind="ValorFiltro"
+                               placeholder="Buscar" />
 
-            <PropertyColumn Property="a => a.Nombre"
-                            Title="Nombres" />
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                @onclick="Buscar">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-            <PropertyColumn Property="a => a.Nacionalidad"
-                            Title="Nacionalidad" />
+            <div class="table-responsive">
+                <QuickGrid Items="@AutorQueryable"
+                           class="table table-hover table-striped">
 
-            <TemplateColumn Title="Fecha Nacimiento">
-                @context.FechaNacimiento.ToString("dd/MM/yyyy")
-            </TemplateColumn>
+                    <PropertyColumn Property="@(a => a.IdAutor)"
+                                    Title="AutorId"
+                                    Sortable="true" />
 
-            <PropertyColumn Property="a => a.Sueldo"
-                            Title="Sueldo" />
+                    <PropertyColumn Property="@(a => a.Nombre)"
+                                    Title="Nombre"
+                                    Sortable="true" />
 
-            <TemplateColumn Title="Acciones">
-                <button class="btn btn-sm btn-warning me-1"
-                        @onclick="() => AbrirModalEditar(context.IdAutor)">
-                    Editar
-                </button>
+                    <PropertyColumn Property="@(a => a.Nacionalidad)"
+                                    Title="Nacionalidad"
+                                    Sortable="true" />
 
-                <button class="btn btn-sm btn-danger"
-                        @onclick="() => Eliminar(context.IdAutor)">
-                    Eliminar
-                </button>
-            </TemplateColumn>
-        </QuickGrid>
+                    <PropertyColumn Property="@(a => a.FechaNacimiento)"
+                                    Title="FechaNacimiento"
+                                    Format="dd/MM/yyyy"
+                                    Sortable="true" />
 
-        <div class="mt-3">
-            <p class="text-muted">
-                Total de autores: @listaMostrar.Count
-            </p>
+                    <PropertyColumn Property="@(a => a.Sueldo)"
+                                    Title="Sueldo"
+                                    Sortable="true" />
 
-            <p class="text-muted">
-                Total de sueldos: @listaMostrar.Sum(x => x.Sueldo).ToString("C2")
-            </p>
+                    <TemplateColumn Title="Opciones"
+                                    Align="Align.Center">
+                        <a href="@($"/autores/edit/{context.IdAutor}")"
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </TemplateColumn>
+
+                </QuickGrid>
+            </div>
+
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <label class="mb-0">
+                    Cantidad: @ListaAutores.Count
+                </label>
+
+                <label class="mb-0">
+                    Total acumulado: @ListaAutores.Sum(a => a.Sueldo).ToString("N2")
+                </label>
+            </div>
+
         </div>
     </div>
 </div>
 
-@* Modal para crear o editar *@
-@if (mostrarModal)
-{
-    <div class="modal d-block" tabindex="-1"
-         style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        @(modelo.IdAutor == 0 ? "Nuevo Autor" : "Editar Autor")
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            aria-label="Cerrar"
-                            @onclick="CerrarModal">
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <EditForm Model="modelo" OnValidSubmit="GuardarModelo">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-
-                        <div class="mb-3">
-                            <label class="form-label">Nombre</label>
-
-                            <InputText class="form-control"
-                                       @bind-Value="modelo.Nombre" />
-
-                            <ValidationMessage For="@(() => modelo.Nombre)" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nacionalidad</label>
-
-                            <InputText class="form-control"
-                                       @bind-Value="modelo.Nacionalidad" />
-
-                            <ValidationMessage For="@(() => modelo.Nacionalidad)" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Fecha de Nacimiento</label>
-
-                            <InputDate class="form-control"
-                                       @bind-Value="modelo.FechaNacimiento" />
-
-                            <ValidationMessage For="@(() => modelo.FechaNacimiento)" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Sueldo</label>
-
-                            <InputNumber class="form-control"
-                                         @bind-Value="modelo.Sueldo" />
-
-                            <ValidationMessage For="@(() => modelo.Sueldo)" />
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button"
-                                    class="btn btn-secondary"
-                                    @onclick="CerrarModal">
-                                Cancelar
-                            </button>
-
-                            <button type="submit" class="btn btn-primary">
-                                Guardar
-                            </button>
-                        </div>
-                    </EditForm>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
 @code {
-    private List<Autor> listaCompleta = new();
-    private List<Autor> listaMostrar = new();
+    public List<Autor> ListaAutores { get; set; } = new();
 
-    private string filtro = "";
-    private string textoBusqueda = "";
+    private IQueryable<Autor> AutorQueryable =
+        Enumerable.Empty<Autor>().AsQueryable();
 
-    private bool mostrarModal = false;
-    private Autor modelo = new Autor();
+    public string Filtro { get; set; } = string.Empty;
+
+    public string ValorFiltro { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        await Actualizar();
+        ListaAutores = await autorService.GetList(a => true);
+
+        AutorQueryable = ListaAutores.AsQueryable();
     }
 
-    private async Task Actualizar()
+    public async Task Buscar()
     {
-        listaCompleta = await autorService.Listar(a => true);
-        Buscar();
-    }
-
-    private void Buscar()
-    {
-        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        if (string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            listaMostrar = listaCompleta;
-            return;
+            ListaAutores = await autorService.GetList(a => true);
         }
+        else if (Filtro == "Nombre")
+        {
+            string busqueda = ValorFiltro.Trim().ToLower();
 
-        if (filtro == "Nombres")
-        {
-            listaMostrar = listaCompleta
-                .Where(x => (x.Nombre ?? "")
-                    .Contains(textoBusqueda.Trim(),
-                        StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            ListaAutores = await autorService.GetList(
+                a => a.Nombre.ToLower().Contains(busqueda));
         }
-        else if (filtro == "Nacionalidad")
+        else if (Filtro == "Nacionalidad")
         {
-            listaMostrar = listaCompleta
-                .Where(x => (x.Nacionalidad ?? "")
-                    .Contains(textoBusqueda.Trim(),
-                        StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            string busqueda = ValorFiltro.Trim().ToLower();
+
+            ListaAutores = await autorService.GetList(
+                a => a.Nacionalidad.ToLower().Contains(busqueda));
         }
         else
         {
-            listaMostrar = listaCompleta;
+            ListaAutores = await autorService.GetList(a => true);
         }
-    }
 
-    private async Task Eliminar(int id)
-    {
-        var eliminado = await autorService.Eliminar(id);
-
-        if (eliminado)
-        {
-            await Actualizar();
-        }
-    }
-
-    private void AbrirModalNuevo()
-    {
-        modelo = new Autor();
-        mostrarModal = true;
-    }
-
-    private async Task AbrirModalEditar(int id)
-    {
-        var encontrado = await autorService.Buscar(id);
-
-        if (encontrado != null)
-        {
-            modelo = encontrado;
-            mostrarModal = true;
-        }
-    }
-
-    private void CerrarModal()
-    {
-        mostrarModal = false;
-    }
-
-    private async Task GuardarModelo()
-    {
-        var guardado = await autorService.Guardar(modelo);
-
-        if (guardado)
-        {
-            mostrarModal = false;
-            await Actualizar();
-        }
+        AutorQueryable = ListaAutores.AsQueryable();
     }
 }

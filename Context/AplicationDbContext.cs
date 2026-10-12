@@ -9,15 +9,5 @@ public class ApplicationDbContext : DbContext
         : base(options)
     {
     }
-
     public DbSet<Autor> Autores => Set<Autor>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<Autor>()
-            .Property(a => a.Sueldo)
-            .HasPrecision(18, 2);
-    }
 }
