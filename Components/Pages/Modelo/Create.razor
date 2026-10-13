@@ -1,9 +1,8 @@
-﻿@page "/autores/create"
+@page "/autores/create"
 @using Williams_AP1_P1.Models
-@using Williams_AP1_P1.Services
 @using Blazored.Toast.Services
 
-@inject AutorService autorService
+@inject IServiceResult<Autor, int> autorService
 @inject NavigationManager navigationManager
 @inject IToastService toastService
 
@@ -11,6 +10,7 @@
 
 <EditForm Model="autor" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
+    <ValidationSummary />
 
     <div class="container">
         <div class="card shadow-lg">
@@ -74,7 +74,7 @@
                         class="btn btn-primary m-2"
                         disabled="@guardando">
                     <i class="bi bi-floppy"></i>
-                    @(guardando ? "Guardando.":"Guardar")
+                    @(guardando ? "Guardando..." : "Guardar")
                 </button>
             </div>
         </div>
@@ -96,21 +96,27 @@
         try
         {
             autor.Nombre = autor.Nombre.Trim();
+            autor.Nacionalidad = autor.Nacionalidad.Trim();
 
-            var existeNombre = await autorService.GetList(
+            var consulta = await autorService.GetList(
                 a => a.Nombre.ToLower() == autor.Nombre.ToLower());
 
-            if (existeNombre.Any())
+            if (consulta.IsFailure)
             {
-                toastService.ShowWarning(
-                    "Ya existe un autor con ese nombre.");
-
+                toastService.ShowError(consulta.Error.Description);
                 return;
             }
 
-            var creado = await autorService.Guardar(autor);
+            if (consulta.Value.Any())
+            {
+                toastService.ShowWarning(
+                    "Ya existe un autor con ese nombre.");
+                return;
+            }
 
-            if (creado)
+            var resultado = await autorService.Guardar(autor);
+
+            if (resultado.IsSuccess)
             {
                 toastService.ShowSuccess(
                     "Autor creado correctamente.");
@@ -119,14 +125,13 @@
             }
             else
             {
-                toastService.ShowError(
-                    "No se pudo crear el autor.");
+                toastService.ShowError(resultado.Error.Description);
             }
         }
         catch (Exception)
         {
             toastService.ShowError(
-                "Ocurrio un error al crear el autor.");
+                "Ocurrio un error inesperado al crear el autor.");
         }
         finally
         {
