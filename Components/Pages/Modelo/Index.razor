@@ -1,10 +1,11 @@
-﻿@page "/autores"
+@page "/autores"
 
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Blazored.Toast.Services
 @using Williams_AP1_P1.Models
-@using Williams_AP1_P1.Services
 
-@inject AutorService autorService
+@inject IServiceResult<Autor, int> autorService
+@inject IToastService toastService
 
 <PageTitle>Registro de autores</PageTitle>
 
@@ -19,7 +20,6 @@
         </div>
 
         <div class="card-body">
-
             <div class="row">
                 <div class="col-3">
                     <label class="col-form-label">
@@ -29,18 +29,18 @@
 
                 <div class="col-4">
                     <label class="col-form-label">
-                        <strong>Búsqueda</strong>
+                        <strong>Busqueda</strong>
                     </label>
                 </div>
             </div>
 
             <div class="row align-items-center mb-3">
                 <div class="col-3">
-                    <InputSelect class="form-select" @bind-Value="Filtro">
-                        <option value="" disabled>Elija una opción</option>
+                    <select class="form-select" @bind="Filtro">
+                        <option value="" disabled>Elija una opcion</option>
                         <option value="Nombre">Nombre</option>
                         <option value="Nacionalidad">Nacionalidad</option>
-                    </InputSelect>
+                    </select>
                 </div>
 
                 <div class="col-4">
@@ -83,8 +83,7 @@
                                     Title="Sueldo"
                                     Sortable="true" />
 
-                    <TemplateColumn Title="Opciones"
-                                    Align="Align.Center">
+                    <TemplateColumn Title="Opciones" Align="Align.Center">
                         <a href="@($"/autores/edit/{context.IdAutor}")"
                            class="btn btn-outline-primary">
                             <i class="bi bi-pencil-square"></i>
@@ -103,7 +102,6 @@
                     Total acumulado: @ListaAutores.Sum(a => a.Sueldo).ToString("N2")
                 </label>
             </div>
-
         </div>
     </div>
 </div>
@@ -120,36 +118,60 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ListaAutores = await autorService.GetList(a => true);
+        await CargarAutores();
+    }
 
-        AutorQueryable = ListaAutores.AsQueryable();
+    private async Task CargarAutores()
+    {
+        var resultado = await autorService.GetList(a => true);
+
+        if (resultado.IsSuccess)
+        {
+            ListaAutores = resultado.Value;
+            AutorQueryable = ListaAutores.AsQueryable();
+        }
+        else
+        {
+            toastService.ShowError(resultado.Error.Description);
+        }
     }
 
     public async Task Buscar()
     {
+        Result<List<Autor>> resultado;
+
         if (string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            ListaAutores = await autorService.GetList(a => true);
+            resultado = await autorService.GetList(a => true);
         }
         else if (Filtro == "Nombre")
         {
             string busqueda = ValorFiltro.Trim().ToLower();
 
-            ListaAutores = await autorService.GetList(
+            resultado = await autorService.GetList(
                 a => a.Nombre.ToLower().Contains(busqueda));
         }
         else if (Filtro == "Nacionalidad")
         {
             string busqueda = ValorFiltro.Trim().ToLower();
 
-            ListaAutores = await autorService.GetList(
+            resultado = await autorService.GetList(
                 a => a.Nacionalidad.ToLower().Contains(busqueda));
         }
         else
         {
-            ListaAutores = await autorService.GetList(a => true);
+            toastService.ShowWarning("Seleccione un filtro valido.");
+            return;
         }
 
-        AutorQueryable = ListaAutores.AsQueryable();
+        if (resultado.IsSuccess)
+        {
+            ListaAutores = resultado.Value;
+            AutorQueryable = ListaAutores.AsQueryable();
+        }
+        else
+        {
+            toastService.ShowError(resultado.Error.Description);
+        }
     }
 }
