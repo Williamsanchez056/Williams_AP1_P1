@@ -1,9 +1,10 @@
+using Aplicada1.Core;
 using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using Williams_AP1_P1.Components;
 using Williams_AP1_P1.Context;
+using Williams_AP1_P1.Models;
 using Williams_AP1_P1.Services;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<AutorService>();
+builder.Services.AddScoped<IServiceResult<Autor, int>, AutorService>();
 builder.Services.AddBlazoredToast();
 
 builder.Services.AddRazorComponents()
